@@ -48,6 +48,16 @@
 **/tests/**/*.jpg
 **/tests/**/*.png
 /metadrive/engine/core/*.png
+
+# Virtual environments
+/metadrive-env/
+/metadrive/metadrive-env/
+venv/
+env/
+.venv/
+
+# Windows reserved names
+nul
 **/**.mp4
 /documentation/jupyter_execute/
 /documentation/**/**.gif

@@ -48,6 +48,8 @@ cd metadrive
 pip install -e .
 ```
 
+If you are using the same Windows local-venv setup as this workspace, see [documentation/source/install.rst](documentation/source/install.rst) for the exact step-by-step instructions, including `requirements.txt`, editable install, Torch setup, and asset verification.
+
 You can verify the installation of MetaDrive via running the testing script:
 
 ```bash

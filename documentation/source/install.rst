@@ -20,6 +20,32 @@ We recommend to use the command following to install::
 
 .. note:: We don't recommend installing MetaDrive with ``pip install metadrive-simulator`` because it will download the source code from PyPI, which may not be the latest version.
 
+Local Windows setup used in this workspace
+############################################
+If you want to prepare MetaDrive the same way it is currently set up in this repository on Windows, use this flow:
+
+1. Create and activate a virtual environment, for example ``metadrive-env``.
+2. From the repository root, install the project dependencies::
+
+    pip install -r requirements.txt
+
+3. Install MetaDrive in editable mode so local changes are picked up immediately::
+
+    pip install -e .
+
+4. On Windows, install the CPU build of Torch separately if you want to avoid CUDA DLL issues::
+
+    .\metadrive-env\Scripts\pip.exe install "torch==2.1.0" --index-url https://download.pytorch.org/whl/cpu
+
+5. Pull simulator assets the first time you run MetaDrive, or do it manually::
+
+    python -m metadrive.pull_asset
+
+6. Verify the install from a folder that does not contain a nested ``metadrive`` directory::
+
+    python -m metadrive.examples.profile_metadrive
+
+For the RL scripts in this workspace, run commands from the repository root so they import the local ``metadrive`` package. The current evaluation script also adds the repo root to ``sys.path`` to make that local import explicit.
 
 
 Pull assets

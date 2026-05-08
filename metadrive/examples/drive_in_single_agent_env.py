@@ -59,6 +59,10 @@ if __name__ == "__main__":
             print("The observation is an numpy array with shape: ", o.shape)
         for i in range(1, 1000000000):
             o, r, tm, tc, info = env.step([0, 0])
+            if args.observation == "lidar":
+                print(f"Step {i}: LIDAR observation shape: {o.shape}")
+                print(f"LIDAR data sample (first 20 values): {o[:20]}")
+
             env.render(
                 text={
                     "Auto-Drive (Switch mode: T)": "on" if env.current_track_agent.expert_takeover else "off",
