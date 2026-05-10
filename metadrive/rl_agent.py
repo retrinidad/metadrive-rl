@@ -1,8 +1,13 @@
 import os
 import logging
+import sys
+from importlib.util import find_spec
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from metadrive.envs.metadrive_env import MetaDriveEnv
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import CheckpointCallback, BaseCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
@@ -11,11 +16,14 @@ logger = logging.getLogger(__name__)
 
 # --- Config ---
 TOTAL_TIMESTEPS = 500_000
-EVAL_FREQ = 10_000
+CHECKPOINT_FREQ = 10_000
 SAVE_PATH = "./models"
 LOG_PATH = "./logs"
 os.makedirs(SAVE_PATH, exist_ok=True)
 os.makedirs(LOG_PATH, exist_ok=True)
+TENSORBOARD_LOG = LOG_PATH if find_spec("tensorboard") is not None else None
+PROGRESS_BAR = False #find_spec("tqdm") is not None and find_spec("rich") is not None
+LOG_INTERVAL = 5000
 
 env_config = {
     "map_config": {
@@ -48,10 +56,23 @@ train_env = VecNormalize(train_env, norm_obs=True, norm_reward=True)
 
 # --- Callbacks ---
 checkpoint_cb = CheckpointCallback(
-    save_freq=EVAL_FREQ,
+    save_freq=CHECKPOINT_FREQ,
     save_path=SAVE_PATH,
     name_prefix="ppo_metadrive"
 )
+
+
+class SimpleLoggingCallback(BaseCallback):
+    """Minimal logging callback to report training progress without extra deps."""
+    def __init__(self, log_freq: int = LOG_INTERVAL, verbose: int = 0):
+        super().__init__(verbose)
+        self.log_freq = log_freq
+
+    def _on_step(self) -> bool:
+        # self.num_timesteps is maintained by SB3
+        if self.num_timesteps % self.log_freq == 0:
+            logger.info(f"Training timesteps: {self.num_timesteps}")
+        return True
 
 # --- Model ---
 model = PPO(
@@ -68,15 +89,15 @@ model = PPO(
     vf_coef=0.5,
     max_grad_norm=0.5,
     device="cpu",           # MlpPolicy is faster on CPU
-    tensorboard_log=LOG_PATH,
+    tensorboard_log=TENSORBOARD_LOG,
     verbose=1,
 )
 
 logger.info("Starting training...")
 model.learn(
     total_timesteps=TOTAL_TIMESTEPS,
-    callback=[checkpoint_cb],
-    progress_bar=True
+    callback=[checkpoint_cb, SimpleLoggingCallback(log_freq=LOG_INTERVAL)],
+    progress_bar=PROGRESS_BAR
 )
 
 # Save final model + normalization stats
